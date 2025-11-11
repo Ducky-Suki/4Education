@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>北京初升高升学路径匹配系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", sans-serif;
+        }
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .page {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.05);
+            display: none;
+        }
+        .page.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        h1 {
+            color: #2d3748;
+            font-size: 24px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        h2 {
+            color: #4a5568;
+            font-size: 20px;
+            margin: 15px 0;
+        }
+        .path-list {
+            margin: 25px 0;
+        }
+        .path-item {
+            background: #f8f9fa;
+            border-left: 4px solid #4299e1;
+            padding: 15px;
+            margin-bottom: 12px;
+            border-radius: 0 8px 8px 0;
+        }
+        .path-item h3 {
+            color: #2d3748;
+            font-size: 18px;
+            margin-bottom: 5px;
+        }
+        .path-item p {
+            color: #718096;
+            font-size: 14px;
+        }
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 14px;
+            background: #4299e1;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s;
+            margin-top: 20px;
+        }
+        .btn:hover {
+            background: #3182ce;
+        }
+        .question-container {
+            margin: 20px 0;
+        }
+        .question {
+            font-size: 18px;
+            color: #2d3748;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .option {
+            display: flex;
+            align-items: center;
+            padding: 14px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .option:hover {
+            background: #e8f4f8;
+        }
+        .option input {
+            margin-right: 12px;
+            width: 18px;
+            height: 18px;
+        }
+        .option label {
+            cursor: pointer;
+            font-size: 16px;
+            color: #4a5568;
+        }
+        .result-header {
+            background: #e8f4f8;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+        .result-header h2 {
+            color: #2d3748;
+            margin-bottom: 8px;
+        }
+        .result-header p {
+            color: #718096;
+        }
+        .recommend-path {
+            background: #f0f8fb;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .recommend-path h3 {
+            color: #4299e1;
+            font-size: 20px;
+            margin-bottom: 10px;
+        }
+        .recommend-path .desc {
+            color: #4a5568;
+            margin-bottom: 15px;
+        }
+        .recommend-path .tips {
+            background: white;
+            padding: 12px;
+            border-radius: 6px;
+            color: #718096;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+        .recommend-path .schools {
+            background: white;
+            padding: 12px;
+            border-radius: 6px;
+        }
+        .recommend-path .schools h4 {
+            color: #2d3748;
+            font-size: 16px;
+            margin-bottom: 8px;
+        }
+        .recommend-path .schools ul {
+            padding-left: 20px;
+            color: #4a5568;
+            font-size: 14px;
+        }
+        .other-paths {
+            margin-top: 30px;
+        }
+        .other-paths h3 {
+            color: #4a5568;
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #718096;
+            font-size: 14px;
+        }
+        .error-message {
+            color: #e53e3e;
+            font-size: 14px;
+            margin-top: 10px;
+            text-align: center;
+            display: none;
+        }
+        /* 手机端适配 */
+        @media (max-width: 600px) {
+            .container {
+                padding: 10px;
+            }
+            .page {
+                padding: 20px 15px;
+            }
+            h1 {
+                font-size: 22px;
+            }
+            .question {
+                font-size: 16px;
+            }
+            .option {
+                padding: 12px;
+            }
+            .btn {
+                padding: 12px;
+                font-size: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 首页：路径介绍 + 匹配按钮 -->
+        <div class="page active" id="page1">
+            <h1>北京初升高升学路径指南</h1>
+            <p style="text-align: center; color: #718096; margin-bottom: 30px;">选择适合孩子的升学路径，让中考少走弯路</p>
+            
+            <div class="path-list">
+                <div class="path-item">
+                    <h3>1. 统一招生（统招）</h3>
+                    <p>最主流路径，按中考成绩+志愿顺序录取，无特殊限制，适合所有学生冲刺目标高中</p>
+                </div>
+                <div class="path-item">
+                    <h3>2. 校额到校</h3>
+                    <p>优质高中名额分配到普通初中，校内竞争，分数线比统招低20-50分，需连续3年同校学籍</p>
+                </div>
+                <div class="path-item">
+                    <h3>3. 特长生招生</h3>
+                    <p>艺体/科技特长可降分录取，需专业测试合格+中考成绩达标，适合有明确特长的学生</p>
+                </div>
+                <div class="path-item">
+                    <h3>4. 1+3项目</h3>
+                    <p>初二结束录取，免中考，连读初三+高中4年，适合想提前锁定高中名额的学生</p>
+                </div>
+                <div class="path-item">
+                    <h3>5. 贯通项目</h3>
+                    <p>3+2+2七年一贯制培养，毕业获本科学历，适合倾向职业教育的学生</p>
+                </div>
+                <div class="path-item">
+                    <h3>6. 市级统筹</h3>
+                    <p>优质高中跨区招生渠道，需满足学籍+成绩要求，适合想跨区升学的学生</p>
+                </div>
+                <div class="path-item">
+                    <h3>7. 直升政策</h3>
+                    <p>教育集团/本校内部直升，免中考或降分录取，需集团/本校学籍+优异成绩</p>
+                </div>
+            </div>
+            
+            <button class="btn" onclick="nextPage(1)">开始路径匹配</button>
+        </div>
+
+        <!-- 问题1：年级 -->
+        <div class="page" id="page2">
+            <h1>升学路径匹配 - 第1题</h1>
+            <div class="question-container">
+                <div class="question">孩子目前读初几？</div>
+                <div class="options">
+                    <div class="option">
+                        <input type="radio" name="q1" id="q1a" value="A" required>
+                        <label for="q1a">A. 初一</label>
+                    </div>
+                    <div class="option">
+                        <input type="radio" name="q1" id="q1b" value="B">
+                        <label for="q1b">B. 初二</label>
+                    </div>
+                    <div class="option">
+                        <input type="radio" name="q1" id="q1c" value="C">
+                        <label for="q1c">C. 初三</label>
+                    </div>
+                </div>
+                <div class="error-message" id="error2">请选择一个选项</div>
+            </div>
+            <button class="btn" onclick="prevPage(2)">上一页</button>
+            <button class="btn" onclick="nextPage(2)">下一题</button>
+        </div>
+
+        <!-- 问题2：成绩排名 -->
+        <div class="page" id="page3">
+            <h1>升学路径匹配 - 第2题</h1>
+            <div class="question-container">
+                <div class="question">孩子当前的成绩水平和校内排名大概是怎样的？</div>
+                <div class="options">
+                    <div class="option">
+                        <input type="radio" name="q2" id="q2a" value="A" required>
+                        <label for="q2a">A. 成绩优异，年级前10%</label>
+                    </div>
+                    <div class="option">
+                        <input type="radio" name="q2" id="q2b" value="B">
+                        <label for="q2b">B. 中等偏上，年级10%-30%</label>
+                    </div>
+                    <div class="option">
+                        <input type="radio" name="q2" id="q2c" value="C">
+                        <label for="q2c">C. 成绩中等，年级30%-60%</label>
+                    </div>
+                    <div class="option">
+                        <input type="radio" name="q2" id="q2d" value="D">
+                        <label for="q2d">D. 成绩偏下，年级60%以后</label>
+                    </div>
+                </div>
+                <div class="error-message" id="error3">请选择一个选项</div>
+            </div>
+            <button class="btn" onclick="prevPage(3)">上一页</button>
+            <button class="btn" onclick="nextPage(3)">下一题</button>
+        </div>
+
+        <!-- 问题3：学籍情况 -->
+        <div class="page" id="page4">
+            <h1>升学路径匹配 - 第3题</h1>
+            <div class="question-container">
+                <div class="question">孩子是否有同一所初中连续就读的学籍？</div>
+                <div class="options">
+                    <div class="option">
+                        <input type="radio" name="q3" id="q3a" value="A" required>
+                        <label for="q3a">A. 初一就在该校，已连续就读且无转学计划（满/将满3年）</label>
+                    </div>
+                    <div class="option">
+                        <input type="radio" name="q3" id="q3b" value="B">
+                        <label for="q3b">B. 初二转学至此，连续就读满2年</label>
+                    </div>
+                    <div class="option">
+                        <input type="radio" name="q3" id="q3c" value="C">
+                        <label for="q3c">C. 近期有转学计划，学籍不连续</label>
+                    </div>
+                </div>
+                <div class="error-message" id="error4">请选择一个选项</div>
+            </div>
+            <button class="btn" onclick="prevPage(4)">上一页</button>
+            <button class="btn" onclick="nextPage(4)">下一题</button>
+        </div>
+
+        <!-- 问题4：学校类型 -->
+        <div class="page" id="page5">
+            <h1>升学路径匹配 - 第4题</h1>
+            <div class="question-container">
+                <div class="question">孩子目前就读的学校属于哪种类型？</div>
+                <div class="options">
+                    <div class="option">
+                        <input type="radio" name="q4" id="q4a" value="A" required>
+                        <label for="q4a">A. 教育集团校（如人大附中集团、四中集团等）</label>
+                    </div>
+                    <div class="option">
+                        <input type="radio" name="q4" id="q4b" value="B">
+                        <label for="q4b">B. 九年一贯制/完全中学（含高中部）</label>
+                    </div>
+                    <div class="option">
+                        <input type="radio" name="q4" id="q4c" value="C">
+                        <label for="q4c">C. 普通初中（无高中部，非教育集团）</label>
+                    </div>
+                    <div class="option">
+                        <input type="radio" name="q4" id="q4d" value="D">
+                        <label for="q4d">D. 特色学校（如艺术、科技特色校）</label>
+                    </div>
+                </div>
+                <div class="error-message" id="error5">请选择一个选项</div>
+            </div>
+            <button class="btn" onclick="prevPage(5)">上一页</button>
+            <button class="btn" onclick="nextPage(5)">下一题</button>
+        </div>
+
+        <!-- 问题5：特长情况 -->
+        <div class="page" id="page6">
+            <h1>升学路径匹配 - 第5题</h1>
+            <div class="question-container">
+                <div class="question">孩子是否有科技、艺术、体育等方面的特长（如竞赛获奖、考级证书等）？</div>
+                <div class="options">
+                    <div class="option">
+                        <input type="radio" name="q5" id="q5a" value="A" required>
+                        <label for="q5a">A. 有明确特长，且有权威证书/获奖经历</label>
+                    </div>
+                    <div class="option">
+                        <input type="radio" name="q5" id="q5b" value="B">
+                        <label for="q5b">B. 有兴趣但无专业证书</label>
+                    </div>
+                    <div class="option">
+                        <input type="radio" name="q5" id="q5c" value="C">
+                        <label for="q5c">C. 无明显特长，侧重文化课学习</label>
+                    </div>
+                </div>
+                <div class="error-message" id="error6">请选择一个选项</div>
+            </div>
+            <button class="btn" onclick="prevPage(6)">上一页</button>
+            <button class="btn" onclick="nextPage(6)">下一题</button>
+        </div>
+
+        <!-- 问题6：目标高中 -->
+        <div class="page" id="page7">
+            <h1>升学路径匹配 - 第6题</h1>
+            <div class="question-container">
+                <div class="question">您和孩子是否有明确的目标高中？</div>
+                <div class="options">
+                    <div class="option">
+                        <input type="radio" name="q6" id="q6a" value="A" required>
+                        <label for="q6a">A. 有，目标是顶尖优质高中（如四中、人大附等）</label>
+                    </div>
+                    <div class="option">
+                        <input type="radio" name="q6" id="q6b" value="B">
+                        <label for="q6b">B. 无明确目标，希望进本区普通高中即可</label>
+                    </div>
+                    <div class="option">
+                        <input type="radio" name="q6" id="q6c" value="C">
+                        <label for="q6c">C. 倾向职业相关的特色培养路径</label>
+                    </div>
+                </div>
+                <div class="error-message" id="error7">请选择一个选项</div>
+            </div>
+            <button class="btn" onclick="prevPage(7)">上一页</button>
+            <button class="btn" onclick="nextPage(7)">下一题</button>
+        </div>
+
+        <!-- 问题7：中考意愿 -->
+        <div class="page" id="page8">
+            <h1>升学路径匹配 - 第7题</h1>
+            <div class="question-container">
+                <div class="question">孩子是否希望避开中考激烈竞争，提前锁定高中名额？</div>
+                <div class="options">
+                    <div class="option">
+                        <input type="radio" name="q7" id="q7a" value="A" required>
+                        <label for="q7a">A. 是，想通过免中考路径升学</label>
+                    </div>
+                    <div class="option">
+                        <input type="radio" name="q7" id="q7b" value="B">
+                        <label for="q7b">B. 否，愿意通过中考统招冲刺</label>
+                    </div>
+                    <div class="option">
+                        <input type="radio" name="q7" id="q7c" value="C">
+                        <label for="q7c">C. 无所谓，看哪种路径更适配</label>
+                    </div>
+                </div>
+                <div class="error-message" id="error8">请选择一个选项</div>
+            </div>
+            <button class="btn" onclick="prevPage(8)">上一页</button>
+            <button class="btn" onclick="showResult()">完成匹配</button>
+        </div>
+
+        <!-- 结果页 -->
+        <div class="page" id="resultPage">
+            <h1>孩子专属升学路径推荐</h1>
+            <div class="result-header">
+                <h2>基于您的回答，为孩子匹配最佳升学方案</h2>
+                <p>以下路径结合孩子的年级、成绩、学籍等情况精准推荐</p>
+            </div>
+            
+            <div id="recommendContent">
+                <!-- 匹配结果将通过JS动态生成 -->
+            </div>
+            
+            <div class="other-paths">
+                <h3>其他可选路径（按适配度排序）</h3>
+                <div id="otherPathsContent">
+                    <!-- 其他路径推荐将通过JS动态生成 -->
+                </div>
+            </div>
+            
+            <button class="btn" onclick="restart()">重新匹配</button>
+            
+            <div class="footer">
+                提示：本匹配结果仅供参考，最终升学路径需结合最新政策和孩子实际情况调整
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 存储用户的答案
+        const answers = {};
+        
+        // 切换到下一页
+        function nextPage(currentPage) {
+            // 验证当前页是否已选择答案（首页不需要验证）
+            if (currentPage > 1) {
+                const questionName = `q${currentPage - 1}`;
+                const selectedOption = document.querySelector(`input[name="${questionName}"]:checked`);
+                
+                if (!selectedOption) {
+                    // 显示错误提示
+                    document.getElementById(`error${currentPage}`).style.display = 'block';
+                    return; // 不继续执行
+                } else {
+                    // 隐藏错误提示并保存答案
+                    document.getElementById(`error${currentPage}`).style.display = 'none';
+                    answers[questionName] = selectedOption.value;
+                }
+            }
+            
+            // 隐藏当前页，显示下一页
+            document.getElementById(`page${currentPage}`).classList.remove('active');
+            document.getElementById(`page${currentPage + 1}`).classList.add('active');
+        }
+        
+        // 返回到上一页
+        function prevPage(currentPage) {
+            // 隐藏当前页，显示上一页
+            document.getElementById(`page${currentPage}`).classList.remove('active');
+            document.getElementById(`page${currentPage - 1}`).classList.add('active');
+        }
+        
+        // 显示结果页面
+        function showResult() {
+            // 验证最后一题是否已选择答案
+            const selectedOption = document.querySelector('input[name="q7"]:checked');
+            if (!selectedOption) {
+                document.getElementById('error8').style.display = 'block';
+                return;
+            }
+            answers['q7'] = selectedOption.value;
+            
+            // 生成推荐结果
+            generateRecommendations();
+            
+            // 切换到结果页
+            document.getElementById('page8').classList.remove('active');
+            document.getElementById('resultPage').classList.add('active');
+        }
+        
+        // 生成推荐结果
+        function generateRecommendations() {
+            const recommendContent = document.getElementById('recommendContent');
+            const otherPathsContent = document.getElementById('otherPathsContent');
+            
+            // 解析答案
+            const grade = answers.q1;          // A:初一, B:初二, C:初三
+            const scoreRank = answers.q2;      // A:前10%, B:10-30%, C:30-60%, D:60%后
+            const schoolRecord = answers.q3;   // A:3年连续, B:2年, C:不连续
+            const schoolType = answers.q4;     // A:教育集团, B:九年一贯制, C:普通初中, D:特色学校
+            const specialty = answers.q5;      // A:有特长, B:有兴趣, C:无特长
+            const targetSchool = answers.q6;   // A:顶尖, B:本区普通, C:职业教育
+            const examWilling = answers.q7;    // A:免中考, B:统招, C:无所谓
+            
+            // 根据不同组合生成推荐
+            let mainPath = '';
+            let mainDesc = '';
+            let mainTips = '';
+            let mainSchools = [];
+            let otherPaths = [];
+            
+            // 直升政策匹配（新增逻辑）
+            if ((schoolType === 'A' || schoolType === 'B') && scoreRank === 'A') {
+                mainPath = "直升政策（优先推荐）";
+                mainDesc = "您的孩子就读于教育集团校或九年一贯制学校，且成绩优异（年级前10%），非常适合争取校内直升名额。直升可免中考或享受大幅降分优惠，是进入优质高中的捷径。";
+                mainTips = "1. 重点关注学校直升政策发布时间（通常初三上学期）；2. 保持年级前10%的稳定成绩，尤其核心科目；3. 积极参与学校特色课程和活动，提升综合表现；4. 提前与班主任沟通直升申请流程。";
+                mainSchools = [
+                    "人大附中集团内直升（如人大附中分校→人大附中）",
+                    "北京四中集团内直升（如四中璞瑅学校→北京四中）",
+                    "北师大二附中集团直升",
+                    "十一学校九年一贯制直升",
+                    "清华附中集团内直升"
+                ];
+                
+                otherPaths = [
+                    {name: "统一招生（统招）", desc: "作为备选，顶尖高中统招分数线通常在490分以上", schools: ["北京四中", "人大附中", "清华附中", "北师大实验中学"]},
+                    {name: "校额到校", desc: "若符合连续3年学籍条件，可作为双保险", schools: ["本区优质高中，具体以学校分配名额为准"]}
+                ];
+            }
+            // 校额到校匹配
+            else if (schoolRecord === 'A' && scoreRank === 'C' && targetSchool === 'B' && schoolType === 'C') {
+                mainPath = "校额到校（优先推荐）";
+                mainDesc = "您的孩子就读于普通初中，成绩中等且拥有连续3年学籍，校额到校是最适配的路径。该路径竞争范围限于本校，分数线通常比统招低20-50分，对目标本区普通高中的学生非常有利。";
+                mainTips = "1. 保持学籍稳定，绝对不能转学；2. 中考总分需达到430分以上；3. 确保综合素质评价达到B等以上；4. 初三上学期关注学校发布的校额到校名额分配表。";
+                mainSchools = [
+                    "本区优质高中（如西城区的三十五中、东城区的二十五中）",
+                    "部分市级优质高中在本区的校额分配名额",
+                    "具体学校名单以当年教育局公布为准"
+                ];
+                
+                otherPaths = [
+                    {name: "统一招生（统招）", desc: "作为保底，目标总分450分左右可稳妥入学", schools: ["本区普通高中，如XX区第一中学、XX区第三中学"]},
+                    {name: "1+3项目（仅初二适用）", desc: "可尝试申请本区1+3项目学校，提前锁定高中名额", schools: ["本区1+3项目实验校，如XX区教师进修学校附属中学"]}
+                ];
+            }
+            // 特长生匹配
+            else if (specialty === 'A') {
+                mainPath = "特长生招生";
+                mainDesc = "您的孩子有明确特长且有权威证书，特长生路径能充分发挥优势。通过专业测试后，文化课分数线可降低5-10%，是进入理想高中的重要渠道。";
+                mainTips = "1. 持续强化特长训练，参加市级以上比赛积累成绩；2. 中考成绩需达到380分以上底线；3. 5月份及时关注目标学校的特长生招生简章；4. 专业测试前针对性准备展示内容。";
+                mainSchools = [
+                    "艺术特长：中央工艺美术学院附属中学、北京戏曲艺术职业学院附属中学",
+                    "体育特长：北京一零一中学（田径）、北京汇文中学（篮球）",
+                    "科技特长：人大附中（科技创新）、北京八中（机器人）"
+                ];
+                
+                otherPaths = [
+                    {name: "统一招生（统招）", desc: "作为保底选项，确保文化课成绩达到普通高中线", schools: ["根据文化课成绩匹配的本区高中"]},
+                    {name: "特色学校统招", desc: "部分特色学校同时设有统招计划", schools: ["北京国际艺术学校、北京科技大学附属中学"]}
+                ];
+            }
+            // 1+3项目匹配
+            else if (examWilling === 'A' && (grade === 'A' || grade === 'B')) {
+                mainPath = "1+3项目";
+                mainDesc = "您的孩子希望避开中考竞争，且处于初一或初二阶段，1+3项目是理想选择。初二结束即可录取，免中考直接进入高中阶段学习，共4年（初三+高中）。";
+                mainTips = "1. 确保初一、初二成绩达到年级前30%；2. 地理、生物小中考需达到75分以上；3. 每年4-5月关注本区1+3项目报名信息；4. 准备学校面试，注重学科基础和适应能力展示。";
+                mainSchools = [
+                    "市级优质校：北京师范大学附属中学、首都师范大学附属中学",
+                    "区级重点校：各区教师进修学校附属中学",
+                    "特色项目校：北京中法实验学校（中法合作项目）"
+                ];
+                
+                otherPaths = [
+                    {name: "贯通项目", desc: "3+2+2七年一贯制培养，同样免中考压力", schools: ["北京电子科技职业学院贯通项目、北京工业职业技术学院贯通项目"]},
+                    {name: "直升政策", desc: "若就读于集团校且成绩优异，可争取直升名额", schools: ["所在教育集团内的高中部"]}
+                ];
+            }
+            // 贯通项目匹配
+            else if (targetSchool === 'C') {
+                mainPath = "贯通项目";
+                mainDesc = "您的孩子倾向职业相关的特色培养路径，贯通项目是最佳选择。3+2+2七年一贯制培养，毕业可获本科学历，兼顾职业技能与学历提升，适合明确职业发展方向的学生。";
+                mainTips = "1. 中考总分需达到380分以上；2. 提前了解不同学校的特色专业，选择与孩子兴趣匹配的方向；3. 部分优质贯通项目竞争激烈，需针对性准备；4. 了解项目的实习安排和就业前景。";
+                mainSchools = [
+                    "高端贯通项目：北京第二外国语学院（国际经贸）、北京信息科技大学（信息技术）",
+                    "特色贯通项目：北京戏曲艺术职业学院（戏曲表演）、北京农业职业学院（现代农业）",
+                    "工科贯通项目：北京电子科技职业学院（智能制造）、北京工业职业技术学院（建筑工程）"
+                ];
+                
+                otherPaths = [
+                    {name: "职业高中特色班", desc: "三年制职业高中，可参加高职考试", schools: ["北京商贸学校、北京铁路电气化学校"]},
+                    {name: "普通高中职业特色班", desc: "兼顾普高课程与职业技能", schools: ["各区开设职业特色课程的普通高中"]}
+                ];
+            }
+            // 统招匹配
+            else {
+                mainPath = "统一招生（统招）";
+                mainDesc = "综合您孩子的情况，统一招生是最稳妥的选择。该路径无特殊限制，完全凭中考成绩录取，适合大多数学生，尤其适合成绩中等以上、无特殊升学限制的学生。";
+                mainTips = "1. 全力以赴备战中考，目标总分根据目标学校往年分数线制定；2. 合理分配各科学习时间，避免偏科；3. 学习志愿填报技巧，遵循'冲稳保'原则；4. 关注中考政策变化，及时调整备考策略。";
+                mainSchools = [
+                    "顶尖高中（成绩前10%）：北京四中、人大附中、清华附中、北师大二附中",
+                    "优质高中（成绩前30%）：各区重点中学，如西城三十五中、东城东直门中学",
+                    "普通高中（成绩中等）：各区普通中学，如海淀教师进修学校附属实验学校"
+                ];
+                
+                otherPaths = [
+                    {name: "校额到校", desc: "若符合连续3年学籍条件，可同时申请增加机会", schools: ["本区优质高中分配名额"]},
+                    {name: "市级统筹", desc: "若想跨区升学，可关注相关学校的市级统筹名额", schools: ["跨区优质高中的统筹计划学校"]}
+                ];
+            }
+            
+            // 渲染主要推荐路径
+            recommendContent.innerHTML = `
+                <div class="recommend-path">
+                    <h3>${mainPath}</h3>
+                    <div class="desc">${mainDesc}</div>
+                    <div class="tips"><strong>行动建议：</strong>${mainTips}</div>
+                    <div class="schools">
+                        <h4>推荐目标学校：</h4>
+                        <ul>
+                            ${mainSchools.map(school => `<li>${school}</li>`).join('')}
+                        </ul>
+                    </div>
+                </div>
+            `;
+            
+            // 渲染其他可选路径
+            let otherPathsHTML = '';
+            otherPaths.forEach(path => {
+                otherPathsHTML += `
+                    <div class="path-item">
+                        <h3>${path.name}</h3>
+                        <p>${path.desc}</p>
+                        <div class="schools" style="margin-top:10px;">
+                            <h4>相关学校：</h4>
+                            <ul>
+                                ${path.schools.map(school => `<li>${school}</li>`).join('')}
+                            </ul>
+                        </div>
+                    </div>
+                `;
+            });
+            otherPathsContent.innerHTML = otherPathsHTML;
+        }
+        
+        // 重新开始匹配
+        function restart() {
+            // 重置答案
+            for (let key in answers) {
+                delete answers[key];
+            }
+            
+            // 重置所有单选按钮
+            document.querySelectorAll('input[type="radio"]').forEach(radio => {
+                radio.checked = false;
+            });
+            
+            // 隐藏所有错误提示
+            document.querySelectorAll('.error-message').forEach(el => {
+                el.style.display = 'none';
+            });
+            
+            // 回到首页
+            document.getElementById('resultPage').classList.remove('active');
+            document.getElementById('page1').classList.add('active');
+        }
+    </script>
+</body>
+</html>
